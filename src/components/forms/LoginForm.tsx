@@ -10,15 +10,16 @@ import {
     InputOTPGroup,
     InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { useSendOTP, useVerifyOTP } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 // Zod validation schemas
 const phoneSchema = z.object({
     phone: z
         .string()
-        .min(1, 'Phone number is required')
-        .regex(/^[0-9+\-\s()]+$/, 'Please enter a valid phone number')
-        .min(10, 'Phone number must be at least 10 digits')
-        .max(15, 'Phone number must be at less than 15 digits'),
+        .min(9, 'Phone number must have at least 9 digits')
+        .max(12, 'Phone number must have at most 12 digits')
+        .regex(/^8\d+$/, 'Phone number must start with 8 (e.g., 812xxxxxxx)'),
 });
 
 const otpSchema = z.object({
@@ -50,6 +51,8 @@ export default function LoginForm() {
         defaultValues: {
             phone: '',
         },
+        mode: 'onChange',
+        reValidateMode: 'onChange',
     });
 
     const otpForm = useForm<OTPFormValues>({
@@ -66,23 +69,45 @@ export default function LoginForm() {
         }
     }, [countDown]);
 
-    const onSendOTP = (data: PhoneFormValues) => {
-        console.log('Phone submitted:', data);
+    const sendOTP = useSendOTP();
+    const verifyOTP = useVerifyOTP();
 
-        const otp = Math.floor(100000 + Math.random() * 900000);
-        console.log(`OTP for ${data.phone}: ${otp}`);
+    const onSendOTP = async (payload: PhoneFormValues) => {
+        let formattedPhone = payload.phone.trim();
+        if (formattedPhone.startsWith('0')) {
+            formattedPhone = formattedPhone.slice(1);
+        }
 
-        setCountDown(60);
-        setIsOTPSent(true);
-        setSubmittedPhone(data.phone);
+        const fullPhone = `+62${formattedPhone}`;
 
-        console.log('OTP has been sent successfully');
+        sendOTP.mutate(fullPhone, {
+            onSuccess: (data) => {
+                console.log(`otp for ${fullPhone} is ${data}`);
+                toast.success('OTP has been sent');
+
+                setCountDown(60);
+                setIsOTPSent(true);
+                setSubmittedPhone(fullPhone);
+            },
+            onError: (err: any) => {
+                console.error(err);
+                toast.error('failed to send otp');
+            },
+        });
     };
 
     const onVerifyOTP = (data: OTPFormValues) => {
-        console.log('OTP submitted:', data.otp);
-        console.log('Verifying OTP...');
-        // Add your OTP verification logic here
+        verifyOTP.mutate(
+            { phone: submittedPhone, otp: data.otp },
+            {
+                onSuccess: () => {
+                    toast.success('Login success');
+                },
+                onError: () => {
+                    toast.error('login error');
+                },
+            }
+        );
     };
 
     const handleResendOTP = () => {
@@ -151,14 +176,22 @@ export default function LoginForm() {
                                 type="tel"
                                 placeholder="812 3456 7890"
                                 className="pl-20"
-                                {...phoneForm.register('phone')}
+                                {...phoneForm.register('phone', {
+                                    onChange: (e) => {
+                                        e.target.value = e.target.value.replace(
+                                            /[^0-9]/g,
+                                            ''
+                                        );
+                                    },
+                                })}
                             />
                         </div>
-                        {phoneForm.formState.errors.phone && (
-                            <p className="text-sm text-destructive">
-                                {phoneForm.formState.errors.phone.message}
-                            </p>
-                        )}
+                        {phoneForm.formState.errors.phone &&
+                            phoneForm.getValues('phone') !== '' && (
+                                <p className="text-sm text-destructive">
+                                    {phoneForm.formState.errors.phone.message}
+                                </p>
+                            )}
                     </div>
 
                     <Button
