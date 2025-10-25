@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/input-otp';
 import { useSendOTP, useVerifyOTP } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router';
+import { useAppStore } from '@/store/useAppStore';
 
 // Zod validation schemas
 const phoneSchema = z.object({
@@ -46,6 +48,8 @@ export default function LoginForm() {
     const [submittedPhone, setSubmittedPhone] = useState('');
     const [otpValue, setOtpValue] = useState('');
 
+    const navigate = useNavigate();
+
     const phoneForm = useForm<PhoneFormValues>({
         resolver: zodResolver(phoneSchema),
         defaultValues: {
@@ -72,7 +76,7 @@ export default function LoginForm() {
     const sendOTP = useSendOTP();
     const verifyOTP = useVerifyOTP();
 
-    const onSendOTP = async (payload: PhoneFormValues) => {
+    const onSendOTP = (payload: PhoneFormValues) => {
         let formattedPhone = payload.phone.trim();
         if (formattedPhone.startsWith('0')) {
             formattedPhone = formattedPhone.slice(1);
@@ -100,8 +104,11 @@ export default function LoginForm() {
         verifyOTP.mutate(
             { phone: submittedPhone, otp: data.otp },
             {
-                onSuccess: () => {
+                onSuccess: (data) => {
                     toast.success('Login success');
+                    const setUser = useAppStore.getState().setUser;
+                    setUser(data);
+                    navigate('/dashboard');
                 },
                 onError: () => {
                     toast.error('login error');

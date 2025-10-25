@@ -1,11 +1,16 @@
 import { NavLink } from 'react-router';
 import { cn } from '@/lib/utils';
+import { useAppStore } from '@/store/useAppStore';
 
 export default function Navbar() {
+    const user = useAppStore((state) => state.user);
+
     const navItems = [
-        { label: 'Overview', path: '/dashboard', role: 'all' },
-        { label: 'My Posts', path: '/dashboard/posts', role: 'creator' },
-        { label: 'Creators', path: '/dashboard/creators', role: 'fan' },
+        { label: 'Overview', path: '/dashboard' },
+        {
+            label: user?.role == 'fan' ? 'Creators' : 'My Posts',
+            path: '/posts',
+        },
     ];
 
     return (
