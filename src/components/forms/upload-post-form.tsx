@@ -10,7 +10,6 @@ import {
 import { Input } from '../ui/input';
 import { useState } from 'react';
 import { Textarea } from '../ui/textarea';
-import { useAppStore } from '@/store/useAppStore';
 import z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,9 +59,6 @@ type UploadPostFormData = z.infer<typeof uploadPostSchema>;
 
 export default function UploadPostForm() {
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
-
-    const user = useAppStore((state) => state.user);
-
     const {
         handleSubmit,
         setValue,
@@ -100,7 +96,6 @@ export default function UploadPostForm() {
 
     const onPublishPost = () => {
         const payload: ICreatePostPayload = {
-            creator_id: String(user?.id),
             file: selectedImage,
             text: postContent,
         };
