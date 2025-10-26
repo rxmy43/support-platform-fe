@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { HeartHandshake } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { usePosts } from '@/hooks/usePost';
+import { useAppStore } from '@/store/useAppStore';
 
 function formatTimeAgo(date: Date): string {
     return formatDistanceToNow(date, { addSuffix: true });
@@ -12,6 +13,7 @@ function formatTimeAgo(date: Date): string {
 
 export function PostFeed() {
     const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+    const user = useAppStore((s) => s.user);
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
         usePosts();
 
@@ -25,7 +27,7 @@ export function PostFeed() {
     const posts = data?.pages.flatMap((page) => page.data ?? []) ?? [];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-16">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {posts.map((post) => {
                     const isExpanded = expanded[post.id];
@@ -89,12 +91,15 @@ export function PostFeed() {
                                             </button>
                                         )}
                                     </p>
-                                    <Button
-                                        size="icon"
-                                        variant="secondary"
-                                        className="rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm ml-2 flex-shrink-0">
-                                        <HeartHandshake className="w-4 h-4 text-pink-600" />
-                                    </Button>
+                                    {user?.role === 'fan' &&
+                                        user.id !== post.creator_id && (
+                                            <Button
+                                                size="icon"
+                                                variant="secondary"
+                                                className="rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm ml-2 flex-shrink-0">
+                                                <HeartHandshake className="w-4 h-4 text-pink-600" />
+                                            </Button>
+                                        )}
                                 </div>
                             </CardContent>
                         </Card>
