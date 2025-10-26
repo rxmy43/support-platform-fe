@@ -30,6 +30,10 @@ const router = createBrowserRouter([
                 path: '/posts',
                 element: <PostList />,
             },
+            {
+                path: '/return',
+                element: <h1>Transaction Success</h1>,
+            },
         ],
     },
 ]);
