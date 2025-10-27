@@ -4,11 +4,12 @@ import DashboardPage from '../pages/DashboardPage';
 import PublicRoute from './PublicRoute';
 import ProtectedRoute from './ProtectedRoute';
 import PostList from '@/pages/PostList';
+import HomePage from '@/pages/HomePage';
 
 const router = createBrowserRouter([
     {
         path: '/',
-        element: <div>Hello World</div>,
+        element: <HomePage />,
     },
     {
         element: <PublicRoute />,
