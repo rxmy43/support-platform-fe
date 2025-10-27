@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router';
-import { HeartHandshake, Coffee } from 'lucide-react';
+import { HeartHandshake } from 'lucide-react';
 
 export default function HomePage() {
     return (
@@ -30,7 +30,17 @@ export default function HomePage() {
                     <br />
                     <br />
                     This project was built as a{' '}
-                    <strong>technical test for Dumbways ID</strong> by{' '}
+                    <strong>
+                        technical test for{' '}
+                        <a
+                            href="https://dumbways.id/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-red-500 font-semibold hover:underline">
+                            Dumbways ID
+                        </a>
+                    </strong>{' '}
+                    by{' '}
                     <a
                         href="https://github.com/rxmy43"
                         target="_blank"
@@ -43,13 +53,9 @@ export default function HomePage() {
 
                 <div className="flex justify-center mt-8">
                     <Button
-                        asChild
                         size="lg"
-                        className="text-lg font-semibold px-8 py-6 rounded-xl shadow-md hover:shadow-lg flex items-center gap-2">
-                        <Link to="/login">
-                            <Coffee className="w-5 h-5" />
-                            Login to Continue
-                        </Link>
+                        className="text-lg font-semibold px-8 py-6 rounded-xl">
+                        <Link to="/login">Login to Continue</Link>
                     </Button>
                 </div>
             </motion.div>
