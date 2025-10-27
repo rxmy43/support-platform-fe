@@ -16,6 +16,7 @@ export function usePosts() {
         queryFn: ({ pageParam = 0 }) => fetchAllPosts(pageParam),
         getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
         initialPageParam: 0,
+        staleTime: 1000 * 60 * 2,\
     });
 }
 

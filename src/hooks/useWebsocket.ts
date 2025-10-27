@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 
 export function useWebsocket(
@@ -7,6 +7,8 @@ export function useWebsocket(
 ) {
     const wsRef = useRef<WebSocket | null>(null);
 
+    const stableOnMessage = useCallback(onMessage, [onMessage]);
+
     useEffect(() => {
         if (!creatorId) return;
 
@@ -14,27 +16,25 @@ export function useWebsocket(
         const ws = new WebSocket(`wss://${apiUrl}/ws?creator_id=${creatorId}`);
         wsRef.current = ws;
 
-        ws.onopen = () => {
-            console.log('ws open');
-        };
+        ws.onopen = () => console.log('ws open');
 
         ws.onmessage = (ev) => {
             try {
-                const json = JSON.parse(ev.data);
-                const audio = new Audio('/sound/notification.wav');
-                audio.play();
-
-                toast.success(
-                    `${json.fan_name} just sent you IDR ${Number(
-                        json.amount
-                    ).toLocaleString()}`,
-                    {
-                        duration: 5000,
-                    }
-                );
-                onMessage(json);
-            } catch (error) {
-                console.error(error);
+                const msg = JSON.parse(ev.data);
+                if (msg.event === 'support_received') {
+                    const data = msg.data;
+                    new Audio('/sound/notification.wav').play();
+                    toast.success(
+                        `${data.fan_name} just sent you IDR ${Number(
+                            data.amount
+                        ).toLocaleString()}`,
+                        { duration: 5000 }
+                    );
+                    stableOnMessage(data);
+                }
+                // add another event
+            } catch (e) {
+                console.error(e);
             }
         };
 
@@ -42,7 +42,8 @@ export function useWebsocket(
         ws.onerror = (e) => console.error('ws error', e);
 
         return () => {
+            wsRef.current = null;
             ws.close();
         };
-    }, [creatorId, onMessage]);
+    }, [creatorId, stableOnMessage]);
 }

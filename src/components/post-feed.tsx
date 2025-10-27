@@ -6,16 +6,26 @@ import { HeartHandshake } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { usePosts } from '@/hooks/usePost';
 import { useAppStore } from '@/store/useAppStore';
+import { SupportCreatorModal } from './modals/support-creator-modal';
+import { useDonate } from '@/hooks/useSupport';
+import { toast } from 'sonner';
 
 function formatTimeAgo(date: Date): string {
     return formatDistanceToNow(date, { addSuffix: true });
 }
 
 export function PostFeed() {
+    const [openSupport, setOpenSupport] = useState(false);
+    const [selectedCreator, setSelectedCreator] = useState<{
+        id: number;
+        name: string;
+    } | null>(null);
     const [expanded, setExpanded] = useState<Record<number, boolean>>({});
     const user = useAppStore((s) => s.user);
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
         usePosts();
+
+    const donate = useDonate();
 
     const toggleExpand = (id: number) => {
         setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -25,6 +35,24 @@ export function PostFeed() {
         return <p className="text-center text-muted-foreground">Loading...</p>;
 
     const posts = data?.pages.flatMap((page) => page.data ?? []) ?? [];
+
+    const handleSupportClick = (creatorId: number, creatorName: string) => {
+        setSelectedCreator({ id: creatorId, name: creatorName });
+        setOpenSupport(true);
+    };
+
+    const handleDonate = (amount: number, creatorId: number) => {
+        donate.mutate(
+            { amount, creator_id: creatorId },
+            {
+                onSuccess: (res) => {
+                    toast.success('Your donation has been created!');
+                    if (res.payment_url) window.open(res.payment_url, '_blank');
+                },
+                onError: () => toast.error('failed to create donation!'),
+            }
+        );
+    };
 
     return (
         <div className="space-y-6 pb-16">
@@ -96,7 +124,13 @@ export function PostFeed() {
                                             <Button
                                                 size="icon"
                                                 variant="secondary"
-                                                className="rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm ml-2 flex-shrink-0">
+                                                className="rounded-full bg-white/90 hover:bg-white shadow-md backdrop-blur-sm ml-2 flex-shrink-0"
+                                                onClick={() =>
+                                                    handleSupportClick(
+                                                        post.creator_id,
+                                                        post.creator_name
+                                                    )
+                                                }>
                                                 <HeartHandshake className="w-4 h-4 text-pink-600" />
                                             </Button>
                                         )}
@@ -116,6 +150,13 @@ export function PostFeed() {
                     </Button>
                 </div>
             )}
+
+            <SupportCreatorModal
+                open={openSupport}
+                onOpenChange={setOpenSupport}
+                creator={selectedCreator}
+                onSupport={handleDonate}
+            />
         </div>
     );
 }
