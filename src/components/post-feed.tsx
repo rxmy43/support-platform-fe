@@ -145,7 +145,9 @@ export function PostFeed() {
                 <div className="flex justify-center">
                     <Button
                         onClick={() => fetchNextPage()}
-                        disabled={isFetchingNextPage}>
+                        disabled={isFetchingNextPage}
+                        className="rounded-xl"
+                        variant="outline">
                         {isFetchingNextPage ? 'Loading more...' : 'Load More'}
                     </Button>
                 </div>
