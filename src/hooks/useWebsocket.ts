@@ -12,8 +12,9 @@ export function useWebsocket(
     useEffect(() => {
         if (!creatorId) return;
 
-        let apiUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
-        const ws = new WebSocket(`wss://${apiUrl}/ws?creator_id=${creatorId}`);
+        const wsUrl = import.meta.env.VITE_WS_URL;
+        const ws = new WebSocket(`${wsUrl}?creator_id=${creatorId}`);
+
         wsRef.current = ws;
 
         ws.onopen = () => console.log('ws open');
